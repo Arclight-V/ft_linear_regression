@@ -17,7 +17,6 @@ int main() {
 
     std::cout << "Enter the positive mileage of the car: \n";
     std::getline(std::cin, line);
-
     try {
         millage = std::stod(line);
     } catch (std::invalid_argument) {
@@ -27,8 +26,12 @@ int main() {
         std::cout << "The converted value would fall out of the range of the result type or if the underlying function\n";
         return -1;
     }
+    if (millage < 0) {
+        std::cout << "The mileage must be a positive number\n";
+        return -1;
+    }
 
-    std::cout << theta0 << " " << theta1 << ' ' << millage << '\n';
+    std::cout << "Expected cost according to the model: " << theta0 * (theta1 * millage) << '\n';
 }
 
 //
