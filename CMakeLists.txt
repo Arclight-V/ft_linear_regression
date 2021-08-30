@@ -4,3 +4,4 @@ project(ft_linear_regression)
 set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory(predict)
+add_subdirectory(trainModel)
