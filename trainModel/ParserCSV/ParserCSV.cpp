@@ -22,7 +22,10 @@ ParserCSV::ParserCSV(char *pathToCSV) : csvFile(pathToCSV), arrayNumbers(nullptr
 }
 
 ParserCSV::~ParserCSV() {
-
+//    for(std::vector<double> **tmp = arrayNumbers; *tmp; ++(*tmp)) {
+//        delete *tmp;
+//    }
+//    delete arrayNumbers;
 }
 
 //
