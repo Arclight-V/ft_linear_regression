@@ -3,4 +3,4 @@ project(trainModel)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(trainModel trainModel.cpp ParserCSV/ParserCSV.cpp ParserCSV/ParserCSV.h)
+add_executable(trainModel trainModel.cpp ParserCSV/ParserCSV.h)
