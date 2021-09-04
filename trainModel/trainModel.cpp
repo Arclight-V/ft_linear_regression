@@ -1,7 +1,7 @@
 #include "ParserCSV/ParserCSV.h"
 
 int main() {
-    ParserCSV parserCsv("../../resources/data.csv");
+    ParserCSV<double> parserCsv("../../resources/data.csv");
     return 0;
 }
 
