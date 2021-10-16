@@ -4,6 +4,7 @@
 
 int main() {
     ParserCSV<double> parserCsv("../../resources/data.csv");
+
     return 0;
 }
 

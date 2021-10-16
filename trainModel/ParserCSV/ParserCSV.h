@@ -4,33 +4,53 @@
 #include <fstream>
 #include <vector>
 
+
 template<typename T>
 class ParserCSV {
 private:
-    ParserCSV() {};
-    std::ifstream csvFile;
-    std::vector<T> **arrayNumbers;
+    std::ifstream               csv_file_;
+    std::vector<std::vector<T>> array_numbers_;
+    std::vector<std::string>    first_line_;
+
 public:
-    ParserCSV(const char *pathToCSV) : csvFile(pathToCSV), arrayNumbers(nullptr) {
-        if (csvFile.is_open()) {
+    ParserCSV() = delete;
+    ParserCSV(const ParserCSV&) = delete;
+    ParserCSV(const char *pathToCSV) : csv_file_(pathToCSV), array_numbers_() {
+        if (csv_file_.is_open()) {
             std::vector<std::string> lines;
             std::string line;
-            while (std::getline(csvFile, line)) {
+            // read from csv
+            while (std::getline(csv_file_, line)) {
                 lines.push_back(line);
             }
-            arrayNumbers = new std::vector<T>* [lines.size() - 1];
-            std::vector<T> **tmp = arrayNumbers;
+            size_t current_pos = 0, pos_next = lines[0].find( ',');
+            // save the first line
+            for (; pos_next != std::string::npos; pos_next = lines[0].find(',', current_pos)) {
+                first_line_.push_back(lines[0].substr(current_pos, pos_next));
+                current_pos = pos_next + 1;
+            }
+            first_line_.push_back(lines[0].substr(current_pos, pos_next));
+            // save next lines
             for (size_t i = 1; i < lines.size(); ++i) {
-                (*tmp) = new std::vector<T>;
-                (*tmp)->push_back(std::stod(lines[i]));
-                std::string str = lines[i].substr(lines[i].find(',') + 1, lines[i].size());
-                (*tmp)->push_back(std::stod(lines[i].substr(lines[i].find(',') + 1, lines[i].size())));
-                ++(*tmp);
+                std::vector<T> tmp;
+                current_pos = 0;
+                pos_next = lines[i].find( ',');
+                for (;pos_next != std::string::npos; pos_next = lines[i].find(',', current_pos)) {
+                    tmp.push_back(std::stod(lines[i].substr(current_pos, pos_next)));
+                    current_pos = pos_next + 1;
+                }
+                tmp.push_back(std::stod(lines[i].substr(current_pos, pos_next)));
+                array_numbers_.push_back(tmp);
             }
         }
     };
-    virtual ~ParserCSV() {};
+
+    ParserCSV& operator=(const ParserCSV&) = delete;
+
+    virtual ~ParserCSV() {
+    };
 };
+
 
 
 #endif //PARSERCSV_H
