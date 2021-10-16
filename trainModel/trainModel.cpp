@@ -3,7 +3,7 @@
 #include <Eigen/Dense>
 
 int main() {
-    ParserCSV<double> parserCsv("../../resources/data.csv");
+    ParserCSV<double> parserCsv("../../resources/data.csv", ',');
 
     return 0;
 }
