@@ -7,20 +7,23 @@
 
 #include <iostream>
 #include <vector>
-
-//using std::vector<std::vector<std::string>> = TwoDVectorString;
+#include <boost/algorithm/string.hpp>
 
 class CSVTransform {
-    std::string csv_file_name_;
+    std::string dataset_;
     std::string delimiter_;
     bool header_;
 
 public:
-    CSVTransform(const std::string& csv_file_name, const std::string& delimiter, const bool header) : csv_file_name_(csv_file_name),
+    CSVTransform(const std::string& csv_file_name, const std::string& delimiter, const bool header) : dataset_(csv_file_name),
                                                                                   delimiter_(delimiter),
                                                                                   header_(header)
     {}
+    CSVTransform(const CSVTransform& rhs) = delete;
+    ~CSVTransform() = default;
+    CSVTransform& operator=(const CSVTransform& rhs) = delete;
 
+    std::vector<std::vector<std::string>> readCSV();
 };
 
 

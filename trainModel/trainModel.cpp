@@ -54,7 +54,7 @@ int main() {
     CSVTransform csvTransform(csv_parameters::kCSVFileName,
                               csv_parameters::kDelimiter,
                               csv_parameters::kHeader);
-
+    csvTransform.readCSV();
     return 0;
 }
 
