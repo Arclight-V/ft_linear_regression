@@ -7,7 +7,8 @@
 
 #include <iostream>
 #include <vector>
-#include <boost/algorithm/string.hpp>
+#include <Eigen/Dense>
+
 
 class CSVTransform {
     std::string dataset_;
@@ -24,6 +25,8 @@ public:
     CSVTransform& operator=(const CSVTransform& rhs) = delete;
 
     std::vector<std::vector<std::string>> readCSV();
+    Eigen::MatrixXd CSVtoEigenMatrixXd(std::vector<std::vector<std::string>>& dataset, int rows, int columns);
+
 };
 
 

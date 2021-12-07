@@ -3,7 +3,7 @@
 #include "iostream"
 
 namespace csv_parameters {
-    std::string kCSVFileName = "../../resource/data.csv";
+    std::string kCSVFileName = "../../resources/data.csv";
     std::string kDelimiter = ",";
     constexpr bool kHeader = true;
 } // csv_parameters
@@ -54,7 +54,17 @@ int main() {
     CSVTransform csvTransform(csv_parameters::kCSVFileName,
                               csv_parameters::kDelimiter,
                               csv_parameters::kHeader);
-    csvTransform.readCSV();
+    std::vector<std::vector<std::string>> dataset(csvTransform.readCSV());
+
+    int rows = dataset.size();
+    int columns = dataset[0].size();
+
+    Eigen::MatrixXd dataMatrix = csvTransform.CSVtoEigenMatrixXd(dataset, rows, columns);
+
+    std::cout << dataMatrix << '\n';
+
+
+
     return 0;
 }
 

@@ -3,6 +3,7 @@
 //
 
 #include <fstream>
+#include <boost/algorithm/string.hpp>
 #include "CSVTransform.h"
 
 std::vector<std::vector<std::string>> CSVTransform::readCSV() {
@@ -19,4 +20,29 @@ std::vector<std::vector<std::string>> CSVTransform::readCSV() {
     file.close();
 
     return dataString;
+}
+
+Eigen::MatrixXd CSVTransform::CSVtoEigenMatrixXd(std::vector<std::vector<std::string>>& dataset, int rows, int columns) {
+    int i = 0;
+    Eigen::MatrixXd matrix;
+
+    if (header_ == true) {
+        --rows;
+        ++i;
+        matrix.resize(rows, columns);
+        for (int mat_i = 0; i <= rows; ++i, ++mat_i) {
+            for (int j = 0; j < columns; ++j) {
+                matrix(mat_i, j) = std::stod(dataset[i][j]);
+            }
+        }
+    } else {
+        matrix.resize(rows, columns);
+        for (int mat_i = 0; i < rows; ++i, ++mat_i) {
+            for (int j = 0; j < columns; ++j) {
+                matrix(mat_i, j) = std::stod(dataset[i][j]);
+            }
+        }
+    }
+
+    return matrix.transpose();
 }
