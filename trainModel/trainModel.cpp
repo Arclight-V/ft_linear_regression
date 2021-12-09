@@ -1,6 +1,7 @@
 #include "ParserCSV/ParserCSV.h"
 #include "CSVTransform/CSVTransform.h"
-#include "iostream"
+#include <iostream>
+#include <Eigen/Geometry>
 
 namespace csv_parameters {
     std::string kCSVFileName = "../../resources/data.csv";
@@ -8,48 +9,75 @@ namespace csv_parameters {
     constexpr bool kHeader = true;
 } // csv_parameters
 
-int main() {
+#if defined(MANUAL)
+// the sum of the multiplication of elements
+double sumMultiplication(const Eigen::MatrixXd &matrixXd) {
+    int rows = matrixXd.rows();
+    int columns = matrixXd.cols();
+    double sum = 0.0;
+    double multiplicationLine = 0.0;
 
-//    ParserCSV<double> parserCsv("../../resources/data.csv", ',');
-//
-//    const std::string column_name_km = "km";
-//    const std::string column_name_prise = "price";
-//
-//    /*
-//     * X -  значения фактора (регрессора) она же независимоя переменная или предикат
-//     * y -  фактическое значение целевой переменной при этом регрессоре она же зависимая переменная
-//     *      или переменная отклика
-//     */
-//    std::vector X(parserCsv.getColumns(column_name_km));
-//    std::vector y(parserCsv.getColumns(column_name_prise));
-//
-//    std::sort(X.begin(), X.end());
-//    std::sort(y.begin(), y.end());
-//
-//    /*
-//     * нормализуем показатели
-//     * нужно чтобы корректно выставить коэффициент и крутить линии регрессии относительно оси асцисс (чтобы не уползать в бесконечность)
-//     * https://neuronus.com/theory/nn/925-sposoby-normalizatsii-peremennykh.html
-//     */
-//
-//    auto X_min = X[0];
-//    auto X_max = X[X.size() - 1];
-//
-//    std::vector<double> X_norm(X.size());
-//
-//    for (size_t i = 0; i < X.size(); ++i) {
-//        X_norm[i] = (X[i] - X_min) / (X_max - X_min);
-//    }
-//
-//    /*
-//     * slope -      угловой коэффициент (множитель регрессора, определяющий скорость роста целевой переменной
-//     *              относительно регрессора)
-//     *              представляет собой величину, на которую Y увеличивается в среднем, если мы увеличиваем X
-//     *              на одну единицу.
-//     * intercept -  точка пересечения оси абцисс
-//     */
-//
-//    float slope_normalize = 0.0, intercept = 0.0;
+    const double **arrayPtr = new const double *[columns];
+    const double **tmp = arrayPtr;
+    int shift = 0;
+    for (; shift < matrixXd.size(); ++tmp) {
+        *tmp = matrixXd.data() + shift;
+        multiplicationLine = **tmp;
+        for (int shift_row = 1; shift_row < rows; ++shift_row) {
+            ++*tmp;
+            multiplicationLine *= **tmp;
+        }
+        shift += rows;
+        sum += multiplicationLine;
+    }
+
+    delete[] arrayPtr;
+
+    return sum;
+}
+
+double sumPowElemVector(const Eigen::MatrixXd &matrixXd) {
+    auto *begin = matrixXd.data();
+    auto *end = matrixXd.data() + matrixXd.size();
+    double sum = 0.0;
+
+    for (; begin != end; ++begin) {
+        sum += std::pow(*begin, 2);
+    }
+
+    return sum;
+}
+#else
+
+double sumEstimatePriceSlope(const Eigen::VectorXd &X,
+                             const Eigen::VectorXd &y,
+                             double slope,
+                             double intercept) {
+    double sum = 0.0;
+
+    for (int i = 0; i < X.size(); ++i) {
+        sum += (intercept + (slope * X[i]) - y[i]) * X[i];
+    }
+
+    return sum;
+}
+
+double sumEstimatePriceIntercept(const Eigen::VectorXd &X,
+                                 const Eigen::VectorXd &y,
+                                 double slope,
+                                 double intercept) {
+    double sum = 0.0;
+
+    for (int i = 0; i < X.size(); ++i) {
+        sum += intercept + (slope * X[i]) - y[i];
+    }
+
+    return sum;
+}
+
+#endif
+
+int main() {
 
     CSVTransform csvTransform(csv_parameters::kCSVFileName,
                               csv_parameters::kDelimiter,
@@ -61,9 +89,127 @@ int main() {
 
     Eigen::MatrixXd dataMatrix = csvTransform.CSVtoEigenMatrixXd(dataset, rows, columns);
 
-    std::cout << dataMatrix << '\n';
+    /*
+     * X -  значения фактора (регрессора) она же независимоя переменная или предикат
+     * y -  фактическое значение целевой переменной при этом регрессоре она же зависимая переменная
+     *      или переменная отклика
+     */
+    Eigen::VectorXd X(dataMatrix.row(0));
+    Eigen::VectorXd y(dataMatrix.row(1));
+
+#if not defined(MANUAL)
+    /*
+     * нормализуем показатели
+     * нужно чтобы корректно выставить коэффициент и крутить линии регрессии относительно оси асцисс (чтобы не уползать в бесконечность)
+     * https://neuronus.com/theory/nn/925-sposoby-normalizatsii-peremennykh.html
+     */
+    Eigen::VectorXd X_norm(csvTransform.NormalizeVectorXd(X));
+    Eigen::VectorXd y_norm(csvTransform.NormalizeVectorXd(y));
+#endif
+
+    double SS_tot = 0.0;
+    {
+        auto *begin = y.data();
+        auto *end = y.data() + y.size();
+        for (; begin != end; ++begin) {
+            SS_tot += std::pow(*begin - y.mean(), 2);
+        }
+        SS_tot /= y.size();
+    }
+
+    /*
+    * slope -      угловой коэффициент (множитель регрессора, определяющий скорость роста целевой переменной
+    *              относительно регрессора)
+    *              представляет собой величину, на которую Y увеличивается в среднем, если мы увеличиваем X
+    *              на одну единицу.
+    * intercept -  точка пересечения оси абцисс
+    */
+
+    double slope_normalize = 0.0, intercept = 0.0, slope = 0.0;
+
+#if defined(MANUAL)
+    double sum_multipl = sumMultiplication(dataMatrix);
+    double count_elem = X.size();
+    double sum_pow = sumPowElemVector(X);
+
+    //https://www.matematicus.ru/matematicheskaya-statistika/metod-naimenshih-kvadratov-regressiya
+    for (int i = 0; i < 100000; ++i) {
+        slope_normalize = (count_elem * sum_multipl - X.sum() * y.sum()) /
+                                                                (count_elem * sum_pow - std::pow(X.sum(), 2));
+        slope_normalize -= 0.001 * slope_normalize;
+        intercept = (y.sum() - slope_normalize * X.sum()) / count_elem;
+        intercept -= 0.001 * intercept;
+    }
+
+    slope = slope_normalize;
+#else
+    double count_elem = X.size();
+    double learningRate = 0.001;
+    std::fstream file_to_safe1("../../resources/coefficient1.txt");
 
 
+    for (int i = 0; i < 100000; ++i) {
+        slope_normalize -= learningRate * ((sumEstimatePriceSlope(X_norm,
+                                                                  y,
+                                                                  slope_normalize,
+                                                                  intercept) / count_elem));
+
+        intercept -= learningRate * ((sumEstimatePriceIntercept(X_norm,
+                                                                y,
+                                                                slope_normalize,
+                                                                intercept) / count_elem));
+    }
+
+    slope = slope_normalize / X.maxCoeff();
+#endif
+
+
+#if defined(PRINT_MODE)
+    {
+        std::cout << "VectorXd X:" << "\n";
+
+        auto *begin = X.data();
+        auto *end = X.data() + X.size();
+        for (; begin != end; ++begin) {
+            std::cout << *begin << " ";
+        }
+        std::cout << "\n\n";
+    }
+
+    {
+        std::cout << "VectorXd y:" << "\n";
+
+        auto *begin = y.data();
+        auto *end = y.data() + y.size();
+        for (; begin != end; ++begin) {
+            std::cout << *begin << " ";
+        }
+        std::cout << "\n\n";
+    }
+
+    {
+        std::cout << "VectorXd X_norm:" << "\n";
+
+        auto *begin = X_norm.data();
+        auto *end = X_norm.data() + X_norm.size();
+        for (; begin != end; ++begin) {
+            std::cout << *begin << " ";
+        }
+        std::cout << "\n\n";
+    }
+
+    {
+        std::cout << "SS_tot: " << SS_tot << "\n";
+    }
+#endif
+
+    std::cout << "intercept (theta0): " << intercept << "\n"
+              << "    slope (theta1): " << slope << "\n";
+
+    std::fstream file_to_safe("../../resources/coefficient.txt");
+
+    file_to_safe << std::fixed << intercept << " " << slope;
+    file_to_safe.close();
 
     return 0;
 }

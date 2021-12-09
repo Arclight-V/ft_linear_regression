@@ -11,7 +11,7 @@ std::vector<std::vector<std::string>> CSVTransform::readCSV() {
     std::vector<std::vector<std::string>> dataString;
     std::string line;
 
-    while(std::getline(file, line)) {
+    while (std::getline(file, line)) {
         std::vector<std::string> vec_to_add;
         boost::algorithm::split(vec_to_add, line, boost::is_any_of(delimiter_));
         dataString.push_back(vec_to_add);
@@ -22,7 +22,8 @@ std::vector<std::vector<std::string>> CSVTransform::readCSV() {
     return dataString;
 }
 
-Eigen::MatrixXd CSVTransform::CSVtoEigenMatrixXd(std::vector<std::vector<std::string>>& dataset, int rows, int columns) {
+Eigen::MatrixXd
+CSVTransform::CSVtoEigenMatrixXd(std::vector<std::vector<std::string>> &dataset, int rows, int columns) {
     int i = 0;
     Eigen::MatrixXd matrix;
 
@@ -45,4 +46,18 @@ Eigen::MatrixXd CSVTransform::CSVtoEigenMatrixXd(std::vector<std::vector<std::st
     }
 
     return matrix.transpose();
+}
+
+Eigen::VectorXd CSVTransform::NormalizeVectorXd(const Eigen::VectorXd &vectorXd) {
+    Eigen::VectorXd vectorXd_norm(vectorXd);
+    double max = vectorXd_norm.maxCoeff();
+    double min = vectorXd_norm.minCoeff();
+    auto *begin = vectorXd_norm.data();
+    auto *end = vectorXd_norm.data() + vectorXd_norm.size();
+
+    for (; begin != end; ++begin) {
+        *begin = (*begin - min) / (max - min);
+    }
+
+    return vectorXd_norm;
 }

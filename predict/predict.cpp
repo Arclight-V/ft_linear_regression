@@ -31,7 +31,7 @@ int main() {
         return -1;
     }
 
-    std::cout << "Expected cost according to the model: " << theta0 * (theta1 * millage) << '\n';
+    std::cout << "Expected cost according to the model: " << std::fixed << theta0 + theta1 * millage << '\n';
 }
 
 //

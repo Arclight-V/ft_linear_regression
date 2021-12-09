@@ -8,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <Eigen/Dense>
+#include <Eigen/IterativeLinearSolvers>
 
 
 class CSVTransform {
@@ -26,7 +27,7 @@ public:
 
     std::vector<std::vector<std::string>> readCSV();
     Eigen::MatrixXd CSVtoEigenMatrixXd(std::vector<std::vector<std::string>>& dataset, int rows, int columns);
-
+    Eigen::VectorXd NormalizeVectorXd(const Eigen::VectorXd& vectorXd);
 };
 
 
