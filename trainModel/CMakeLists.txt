@@ -9,6 +9,6 @@ find_package(Eigen3 3.4)
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${EIGEN3_INCLUDE_DIR})
 #add_compile_definitions(PRINT_MODE)
-add_compile_definitions(SUBJECT)
+#add_compile_definitions(SUBJECT)
 add_executable(trainModel trainModel.cpp CSVTransform/CSVTransform.cpp CSVTransform/CSVTransform.h ft_linear_regression/ft_linear_regression.cpp ft_linear_regression/ft_linear_regression.h)
 

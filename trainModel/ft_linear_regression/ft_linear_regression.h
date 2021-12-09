@@ -19,6 +19,7 @@ private:
     double intercept_ = 0.0;
     double slope_ = 0.0;
 
+
     /*
      * нормализуем показатели
      * нужно чтобы корректно выставить коэффициент и крутить линии регрессии относительно оси асцисс (чтобы не уползать в бесконечность)
@@ -52,6 +53,15 @@ public:
     void fit(Eigen::MatrixXd& dataMatrix,
              double learning_rate=0.001,
              size_t iteration=100000);
+
+    Eigen::VectorXd predict(const Eigen::VectorXd& X);
+
+    /*
+     * X - Test samples.
+     * y - True values for X
+     * https://ru.wikipedia.org/wiki/%D0%9A%D0%BE%D1%8D%D1%84%D1%84%D0%B8%D1%86%D0%B8%D0%B5%D0%BD%D1%82_%D0%B4%D0%B5%D1%82%D0%B5%D1%80%D0%BC%D0%B8%D0%BD%D0%B0%D1%86%D0%B8%D0%B8
+     */
+    double score(const Eigen::VectorXd& X, const Eigen::VectorXd& y);
 
     double getIntercept() const;
     double getSlope() const;

@@ -114,6 +114,45 @@ void ft_linear_regression::fit(Eigen::MatrixXd& dataMatrix,
     intercept_ = intercept;
 }
 
+Eigen::VectorXd ft_linear_regression::predict(const Eigen::VectorXd& X) {
+    Eigen::VectorXd vectorXd(X);
+
+    auto *begin = vectorXd.data();
+    auto *end = vectorXd.data() + vectorXd.size();
+
+    for (; begin != end; ++begin) {
+        *begin = intercept_ + slope_ * *begin;
+    }
+
+    return vectorXd;
+}
+
+double ft_linear_regression::score(const Eigen::VectorXd& X, const Eigen::VectorXd& y)  {
+
+    // найдем сумму квадратов остатков регрессии
+    double SS_res = 0.0;
+    auto* begin_X = X.data();
+    auto* end_X = X.data() + X.size();
+    auto* begin_y = y.data();
+    auto* end_y = y.data() + y.size();
+
+    for (; begin_X != end_X; ++begin_X, ++begin_y) {
+        SS_res += std::pow(*begin_X - *begin_y, 2);
+    }
+    SS_res /= X.size();
+
+    // SS_tor - общая сумма квадратов (квадраты отклонений объясняемой переменной от среднего значения)
+    double SS_tor = 0.0;
+
+    for (begin_y = y.data(); begin_y != end_y; ++begin_y) {
+        SS_tor += std::pow(*begin_y - y.mean(), 2);
+    }
+    SS_tor /= y.size();
+
+    // коэффициент детерминации
+    return 1 - SS_res / SS_tor;
+}
+
 double ft_linear_regression::getIntercept() const {
     return intercept_;
 }

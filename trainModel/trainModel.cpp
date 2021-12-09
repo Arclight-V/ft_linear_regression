@@ -44,17 +44,6 @@ int main() {
      */
     Eigen::VectorXd X(dataMatrix.row(0));
     Eigen::VectorXd y(dataMatrix.row(1));
-//
-//    double SS_tot = 0.0;
-//    {
-//        auto *begin = y.data();
-//        auto *end = y.data() + y.size();
-//        for (; begin != end; ++begin) {
-//            SS_tot += std::pow(*begin - y.mean(), 2);
-//        }
-//        SS_tot /= y.size();
-//    }
-
 
     ft_linear_regression linearRegression;
 
@@ -67,11 +56,16 @@ int main() {
     std::cout << "intercept (tetha0): " << linearRegression.getIntercept() << "\n"
               << "slope     (tetha1): " << linearRegression.getSlope() << '\n';
 
+    Eigen::VectorXd y_predict(linearRegression.predict(X));
+
+    std::cout << "               R^2: " <<  linearRegression.score(y_predict, y) << "\n";
+
 
 #if defined(PRINT_MODE)
 
     printVectorXd("X", X);
     printVectorXd("y", y);
+    printVectorXd("y_predict", y_predict);
 
 #endif
 
