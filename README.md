@@ -49,3 +49,8 @@ in Terminal:
     make
     ./predict
 ```
+
+### visualiation
+```
+python3 visualization_in_python/main.py
+```
