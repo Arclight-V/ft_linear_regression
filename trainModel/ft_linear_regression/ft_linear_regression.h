@@ -19,6 +19,16 @@ private:
     double intercept_ = 0.0;
     double slope_ = 0.0;
 
+    /*
+     * нормализуем показатели
+     * нужно чтобы корректно выставить коэффициент и крутить линии регрессии относительно оси асцисс (чтобы не уползать в бесконечность)
+     * https://neuronus.com/theory/nn/925-sposoby-normalizatsii-peremennykh.html
+     */
+    void NormalizeVectorXd(Eigen::VectorXd& vectorXd);
+
+    double sumPowElemVector(const Eigen::MatrixXd &matrixXd);
+    double sumMultiplication(const Eigen::MatrixXd &matrixXd);
+
 public:
     ft_linear_regression() = default;
     ft_linear_regression(const ft_linear_regression& rhs) = delete;
@@ -34,13 +44,17 @@ public:
                      double learning_rate=0.001,
                      size_t iteration=100000);
 
-    void fit(Eigen::MatrixXd& dataMatrix);
-    double sumPowElemVector(const Eigen::MatrixXd &matrixXd);
-    double sumMultiplication(const Eigen::MatrixXd &matrixXd);
+    /*
+     * dataMatrix
+     * row_0 - Training data (данные обучения)
+     * row_1 - Target values (целевые значения)
+     */
+    void fit(Eigen::MatrixXd& dataMatrix,
+             double learning_rate=0.001,
+             size_t iteration=100000);
 
     double getIntercept() const;
     double getSlope() const;
-
 };
 
 

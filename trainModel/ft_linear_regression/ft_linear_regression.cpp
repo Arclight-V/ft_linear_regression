@@ -4,10 +4,23 @@
 
 #include "ft_linear_regression.h"
 
+void ft_linear_regression::NormalizeVectorXd(Eigen::VectorXd &vectorXd) {
+    double max = vectorXd.maxCoeff();
+    double min = vectorXd.minCoeff();
+    auto *begin = vectorXd.data();
+    auto *end = vectorXd.data() + vectorXd.size();
+
+    for (; begin != end; ++begin) {
+        *begin = (*begin - min) / (max - min);
+    }
+}
+
 void ft_linear_regression::fit_subject(const Eigen::VectorXd& X,
                                        const Eigen::VectorXd& y,
                                        double learning_rate,
                                        size_t iteration) {
+    Eigen::VectorXd X_norm(X);
+    NormalizeVectorXd(X_norm);
     double intercept = 0.0;
     double slope_normalize = 0.0;
     double count_elem = X.size();
@@ -21,12 +34,12 @@ void ft_linear_regression::fit_subject(const Eigen::VectorXd& X,
         sum_slope = 0.0;
         sum_intercept = 0.0;
 
-        for (begin_x = X.data(),
-             end_x = X.data() + X.size(),
+        for (begin_x = X_norm.data(),
+             end_x = X_norm.data() + X_norm.size(),
              begin_y = y.data();
-             begin_x != end_x;
-             ++begin_x,
-                     ++begin_y) {
+                begin_x != end_x;
+                    ++begin_x,
+                    ++begin_y) {
             sum_intercept += intercept + (slope_normalize * *begin_x) - *begin_y;
             sum_slope += sum_intercept * *begin_x;
         }
@@ -34,7 +47,6 @@ void ft_linear_regression::fit_subject(const Eigen::VectorXd& X,
         slope_normalize -= learning_rate * (sum_slope / count_elem);
         intercept -= learning_rate * (sum_intercept / count_elem);
     }
-
     slope_ = slope_normalize / X.maxCoeff();
     intercept_ = intercept;
 }
@@ -66,6 +78,7 @@ double ft_linear_regression::sumMultiplication(const Eigen::MatrixXd &matrixXd) 
 }
 
 double ft_linear_regression::sumPowElemVector(const Eigen::MatrixXd &matrixXd) {
+
     auto *begin = matrixXd.data();
     auto *end = matrixXd.data() + matrixXd.size();
     double sum = 0.0;
@@ -75,6 +88,30 @@ double ft_linear_regression::sumPowElemVector(const Eigen::MatrixXd &matrixXd) {
     }
 
     return sum;
+}
+
+void ft_linear_regression::fit(Eigen::MatrixXd& dataMatrix,
+                               double learning_rate,
+                               size_t iteration) {
+    Eigen::VectorXd X(dataMatrix.row(0));
+    Eigen::VectorXd y(dataMatrix.row(1));
+    double sum_multipl = sumMultiplication(dataMatrix);
+    double count_elem = X.size();
+    double sum_pow = sumPowElemVector(X);
+    double slope_normalize = 0.0;
+    double intercept = 0.0;
+
+    //https://www.matematicus.ru/matematicheskaya-statistika/metod-naimenshih-kvadratov-regressiya
+    for (size_t i = 0; i < iteration; ++i) {
+        slope_normalize = (count_elem * sum_multipl - X.sum() * y.sum()) /
+                          (count_elem * sum_pow - std::pow(X.sum(), 2));
+        slope_normalize -= learning_rate * slope_normalize;
+        intercept = (y.sum() - slope_normalize * X.sum()) / count_elem;
+        intercept -= learning_rate * intercept;
+    }
+
+    slope_ = slope_normalize;
+    intercept_ = intercept;
 }
 
 double ft_linear_regression::getIntercept() const {
