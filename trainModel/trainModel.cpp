@@ -1,6 +1,6 @@
-#include "ParserCSV/ParserCSV.h"
 #include "CSVTransform/CSVTransform.h"
 #include <iostream>
+#include <fstream>
 #include <Eigen/Geometry>
 
 namespace csv_parameters {
@@ -47,33 +47,6 @@ double sumPowElemVector(const Eigen::MatrixXd &matrixXd) {
 
     return sum;
 }
-#else
-
-double sumEstimatePriceSlope(const Eigen::VectorXd &X,
-                             const Eigen::VectorXd &y,
-                             double slope,
-                             double intercept) {
-    double sum = 0.0;
-
-    for (int i = 0; i < X.size(); ++i) {
-        sum += (intercept + (slope * X[i]) - y[i]) * X[i];
-    }
-
-    return sum;
-}
-
-double sumEstimatePriceIntercept(const Eigen::VectorXd &X,
-                                 const Eigen::VectorXd &y,
-                                 double slope,
-                                 double intercept) {
-    double sum = 0.0;
-
-    for (int i = 0; i < X.size(); ++i) {
-        sum += intercept + (slope * X[i]) - y[i];
-    }
-
-    return sum;
-}
 
 #endif
 
@@ -84,10 +57,9 @@ int main() {
                               csv_parameters::kHeader);
     std::vector<std::vector<std::string>> dataset(csvTransform.readCSV());
 
-    int rows = dataset.size();
-    int columns = dataset[0].size();
-
-    Eigen::MatrixXd dataMatrix = csvTransform.CSVtoEigenMatrixXd(dataset, rows, columns);
+    Eigen::MatrixXd dataMatrix = csvTransform.CSVtoEigenMatrixXd(dataset,
+                                                                 dataset.size(),
+                                                                 dataset[0].size());
 
     /*
      * X -  значения фактора (регрессора) она же независимоя переменная или предикат
@@ -104,7 +76,6 @@ int main() {
      * https://neuronus.com/theory/nn/925-sposoby-normalizatsii-peremennykh.html
      */
     Eigen::VectorXd X_norm(csvTransform.NormalizeVectorXd(X));
-    Eigen::VectorXd y_norm(csvTransform.NormalizeVectorXd(y));
 #endif
 
     double SS_tot = 0.0;
@@ -145,19 +116,28 @@ int main() {
 #else
     double count_elem = X.size();
     double learningRate = 0.001;
-    std::fstream file_to_safe1("../../resources/coefficient1.txt");
-
+    double *begin_x = nullptr;
+    double *end_x = nullptr;
+    double *begin_y = nullptr;
+    double sum_slope = 0.0;
+    double sum_intercept = 0.0;
 
     for (int i = 0; i < 100000; ++i) {
-        slope_normalize -= learningRate * ((sumEstimatePriceSlope(X_norm,
-                                                                  y,
-                                                                  slope_normalize,
-                                                                  intercept) / count_elem));
+        sum_slope = 0.0;
+        sum_intercept = 0.0;
 
-        intercept -= learningRate * ((sumEstimatePriceIntercept(X_norm,
-                                                                y,
-                                                                slope_normalize,
-                                                                intercept) / count_elem));
+        for (begin_x = X_norm.data(),
+             end_x = X_norm.data() + X_norm.size(),
+             begin_y = y.data();
+             begin_x != end_x;
+             ++begin_x,
+                     ++begin_y) {
+            sum_intercept += intercept + (slope_normalize * *begin_x) - *begin_y;
+            sum_slope += sum_intercept * *begin_x;
+        }
+
+        slope_normalize -= learningRate * (sum_slope / count_elem);
+        intercept -= learningRate * (sum_intercept / count_elem);
     }
 
     slope = slope_normalize / X.maxCoeff();

@@ -11,4 +11,5 @@ include_directories(${EIGEN3_INCLUDE_DIR})
 #add_compile_definitions(PRINT_MODE)
 #add_compile_definitions(MANUAL)
 #add_compile_definitions(PRINT_MODE)
-add_executable(trainModel trainModel.cpp ParserCSV/ParserCSV.h CSVTransform/CSVTransform.cpp CSVTransform/CSVTransform.h)
+add_executable(trainModel trainModel.cpp CSVTransform/CSVTransform.cpp CSVTransform/CSVTransform.h ft_linear_regression/ft_linear_regression.cpp ft_linear_regression/ft_linear_regression.h)
+
